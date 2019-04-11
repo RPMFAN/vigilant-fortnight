@@ -4,7 +4,7 @@ pipeline {
         BUILD = "${env.BUILD_ID}"
     }
     parameters {
-        choice(name: 'repository_branch', choices: ['dev', 'qa'], description: 'Choice branch')
+        choice(name: 'repository_branch', choices: ['dev'], description: 'Choice branch')
         string(name: 'repository_url', defaultValue: 'https://github.com/RPMFAN/vigilant-fortnight.git', description: 'Github repository url')
         booleanParam(name: 'remove', defaultValue: true, description: 'Do you want clean old packages?')
     }
@@ -30,21 +30,21 @@ pipeline {
             steps {
                 sh '''
                 sudo cp -rf ./frontend/src/* ./cicd/docker/Dockerfile/front/data/
-                cd ./cicd/docker/Dockerfile/front/ && sudo docker build -t rpmfan/vigilant-fortnight:front-v-${BUILD_NUMBER} .
+                cd ./cicd/docker/Dockerfile/front/ && sudo docker build -t rpmfan/vigilant-fortnight:front-dev-v-${BUILD_NUMBER} .
                 '''
             }
         }
         stage('Push to dockerhub') {
             steps {
                 sh '''
-                cd ./cicd/docker/Dockerfile/front/ &&  sudo docker push rpmfan/vigilant-fortnight:front-v-${BUILD_NUMBER}
+                cd ./cicd/docker/Dockerfile/front/ &&  sudo docker push rpmfan/vigilant-fortnight:front-dev-v-${BUILD_NUMBER}
                 '''
             }
         }
         stage('Deploy procedure on prod') {
             steps {
                 sh '''
-                sudo ssh ubuntu@172.31.6.197 " sudo docker pull rpmfan/vigilant-fortnight:front-v-${BUILD_NUMBER} && sudo docker rm -f vigilant-fortnight-front && sudo docker run --name vigilant-fortnight-front -p 80:80 -d rpmfan/vigilant-fortnight:front-v-${BUILD_NUMBER} "
+                sudo ssh ubuntu@172.31.6.197 " sudo docker pull rpmfan/vigilant-fortnight:front-dev-v-${BUILD_NUMBER} && sudo docker rm -f vigilant-fortnight-front-dev && sudo docker run --name vigilant-fortnight-front-dev -p 78:80 -d rpmfan/vigilant-fortnight:front-dev-v-${BUILD_NUMBER} "
                 '''
             }
         }

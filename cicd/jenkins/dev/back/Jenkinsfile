@@ -4,7 +4,7 @@ pipeline {
         BUILD = "${env.BUILD_ID}"
     }
     parameters {
-        choice(name: 'repository_branch', choices: ['master', 'dev', 'qa'], description: 'Choice branch')
+        choice(name: 'repository_branch', choices: ['dev'], description: 'Choice branch')
         string(name: 'repository_url', defaultValue: 'https://github.com/RPMFAN/vigilant-fortnight.git', description: 'Github repository url')
         booleanParam(name: 'remove', defaultValue: true, description: 'Do we need clean old one package?')
     }
@@ -37,14 +37,14 @@ pipeline {
             steps {
                 sh '''
                 cp -rf ./backend/target/backend-*.*-SNAPSHOT.jar ./cicd/docker/Dockerfile/back/data/
-                cd ./cicd/docker/Dockerfile/back/ && sudo docker build -t rpmfan/vigilant-fortnight-dev:back-v-${BUILD_NUMBER} .
+                cd ./cicd/docker/Dockerfile/back/ && sudo docker build -t rpmfan/vigilant-fortnight:back-dev-v-${BUILD_NUMBER} .
                 '''
             }
         }
         stage('Push to dockerhub') {
             steps {
                 sh '''
-                cd ./cicd/docker/Dockerfile/back/ &&  sudo docker push rpmfan/vigilant-fortnight-dev:back-v-${BUILD_NUMBER}
+                cd ./cicd/docker/Dockerfile/back/ &&  sudo docker push rpmfan/vigilant-fortnight:back-dev-v-${BUILD_NUMBER}
                 '''
             }
         }
@@ -59,7 +59,7 @@ pipeline {
         stage('Deploy procedure on prod') {
             steps {
                 sh """
-                sudo ssh ubuntu@172.31.6.197 " sudo docker pull rpmfan/vigilant-fortnight-dev:back-v-${BUILD_NUMBER} && sudo docker rm -f vigilant-fortnight-back-dev && sudo docker run --name vigilant-fortnight-back-dev -p 8078:8080 -d rpmfan/vigilant-fortnight:back-v-${BUILD_NUMBER} "
+                sudo ssh ubuntu@172.31.6.197 " sudo docker pull rpmfan/vigilant-fortnight:back-dev-v-${BUILD_NUMBER} && sudo docker rm -f vigilant-fortnight-back-dev && sudo docker run --name vigilant-fortnight-back-dev -p 8078:8080 -d rpmfan/vigilant-fortnight:back-dev-v-${BUILD_NUMBER} "
                 """
             }
         }
