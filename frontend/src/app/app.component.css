@@ -1,0 +1,24 @@
+.row {
+    display: flex;
+    width: 500px;
+    margin: 0 10px;
+}
+
+.column {
+    width: 240px;
+    margin: 0 10px 5px;
+}
+
+.input {
+    margin: 0 20px 15px;
+}
+
+button {
+    padding: 7px 25px;
+    background-color: skyblue;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    border-radius: 4px;
+    margin-left: 20px;
+}

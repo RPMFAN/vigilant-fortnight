@@ -1,0 +1,11 @@
+---
+- hosts: "{{ servers }}"
+  max_fail_percentage: 1
+  serial: 1
+  gather_facts: True
+  remote_user: ubuntu
+  sudo: yes
+  roles:
+   - deploy_itproject
+  post_tasks: 
+   - pause: seconds=10

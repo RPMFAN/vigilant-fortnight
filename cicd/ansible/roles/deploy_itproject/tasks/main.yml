@@ -1,0 +1,10 @@
+---
+- name: Backup old version
+  raw: 
+- name: Copying and Unziping the file
+  unarchive: src=/etc/ansible/roles/deploy_itproject/files/{{ package_name }} dest=/
+- name: Removing old version
+  raw: rm -rf ~/
+- name: Deploy node_modules 
+  raw: cd /usr/local/bin && ./deploy-ui.sh 
+

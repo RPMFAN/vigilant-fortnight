@@ -1,0 +1,20 @@
+<!--The content below is only a placeholder and can be replaced.-->
+<router-outlet></router-outlet>
+
+<div class="row" *ngFor="let item of users">
+    <div class="column"><b>firstName</b> : {{item.firstName}}</div>
+    <div class="column"><b>lastName</b> : {{item.lastName}}</div>
+</div>
+
+<div style="margin-top: 20px">
+    <div class="input">
+        <b>firstName:</b> <input [(ngModel)]="firstName"  required>
+    </div>
+    <div class="input">
+        <b>lastName:</b> <input [(ngModel)]="lastName"  required>
+    </div>
+</div>
+
+<div style="margin-top: 20px">
+    <button (click)="add()">Add</button>
+</div>

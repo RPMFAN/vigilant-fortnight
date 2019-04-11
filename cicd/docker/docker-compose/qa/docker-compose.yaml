@@ -1,0 +1,36 @@
+version: '2'
+
+services:
+  nginx-front:
+    image: nginx:1.15.6
+    container_name: vigilant-fortnight-front-qa
+    ports:
+      - '79:80'
+    volumes:
+      - ./container_storage/nginx/:/usr/share/nginx/html
+
+  tomcat-back:
+    image: tomcat:9.0.11-jre8
+    container_name: vigilant-fortnight-qa
+    ports:
+      - '8079:8080'
+    links:
+      - PostgeSQL
+    volumes:
+      - ./container_storage/tomcat/webapps/:/usr/local/tomcat/webapps/
+      - ./container_storage/tomcat/logs:/usr/local/tomcat/logs
+    extra_hosts:
+      - "PostgreSQL"
+
+  PostgreSQL:
+    image: postgres:10.4
+    container_name: PostgreSQL_QA
+    restart: always
+    volumes:
+      - /container_storage/PostgreSQL/data/:/var/lib/postgresql/data
+    ports:
+      - "5431:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: vigilant-fortnight

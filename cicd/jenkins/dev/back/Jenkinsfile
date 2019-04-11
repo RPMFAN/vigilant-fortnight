@@ -1,0 +1,86 @@
+pipeline {
+    agent { label 'AWS' }
+    environment {
+        BUILD = "${env.BUILD_ID}"
+    }
+    parameters {
+        choice(name: 'repository_branch', choices: ['master', 'dev', 'qa'], description: 'Choice branch')
+        string(name: 'repository_url', defaultValue: 'https://github.com/RPMFAN/vigilant-fortnight.git', description: 'Github repository url')
+        booleanParam(name: 'remove', defaultValue: true, description: 'Do we need clean old one package?')
+    }
+    stages {
+        stage('Clone repository') {
+            steps {
+                    git url: "${params.repository_url}", branch: "${params.repository_branch}"
+            }
+        }
+        stage('Checking repository'){
+            steps {
+                sh "ls -l"
+            }
+        }
+        stage('Testing') {
+            steps {
+                sh '''
+                cd ./backend/ && mvn test     
+                '''
+            }
+        }
+        stage('Build') {
+            steps {
+                sh '''
+                cd ./backend/ && mvn clean install
+                '''
+            }
+        }
+        stage('Peparing & build docker images') {
+            steps {
+                sh '''
+                cp -rf ./backend/target/backend-*.*-SNAPSHOT.jar ./cicd/docker/Dockerfile/back/data/
+                cd ./cicd/docker/Dockerfile/back/ && sudo docker build -t rpmfan/vigilant-fortnight-dev:back-v-${BUILD_NUMBER} .
+                '''
+            }
+        }
+        stage('Push to dockerhub') {
+            steps {
+                sh '''
+                cd ./cicd/docker/Dockerfile/back/ &&  sudo docker push rpmfan/vigilant-fortnight-dev:back-v-${BUILD_NUMBER}
+                '''
+            }
+        }
+        stage('Remove old packages') {
+            when {
+                expression {params.remove == true}
+            }
+            steps {
+                sh 'sudo rm -rf ./*'
+            }
+        }
+        stage('Deploy procedure on prod') {
+            steps {
+                sh """
+                sudo ssh ubuntu@172.31.6.197 " sudo docker pull rpmfan/vigilant-fortnight-dev:back-v-${BUILD_NUMBER} && sudo docker rm -f vigilant-fortnight-back-dev && sudo docker run --name vigilant-fortnight-back-dev -p 8078:8080 -d rpmfan/vigilant-fortnight:back-v-${BUILD_NUMBER} "
+                """
+            }
+        }
+        stage('Finale test') {
+            steps {
+                sh """
+                sudo ssh ubuntu@172.31.6.197 "docker ps -l"
+                """
+            }
+        }
+    }
+    post {
+        aborted {
+            slackSend (color: '#a5a4a4', message: "ABORTED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+        }
+        success {
+            slackSend (color: '#00c63b', message: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+        }
+        failure {
+            slackSend (color: '#e20606', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+        }
+    }
+        
+}
